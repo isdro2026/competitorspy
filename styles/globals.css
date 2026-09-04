@@ -42,3 +42,52 @@ code {
 ::-webkit-scrollbar-thumb:hover {
   background: #64748b;
 }
+
+/* ===== Colorful Theme Enhancement ===== */
+body {
+  background: linear-gradient(135deg, #1e1b4b 0%, #312e81 35%, #0f172a 100%);
+  min-height: 100vh;
+}
+
+.bg-slate-900 {
+  background: transparent !important;
+}
+
+.bg-slate-800 {
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(236, 72, 153, 0.08)) !important;
+  border-color: rgba(167, 139, 250, 0.35) !important;
+  box-shadow: 0 4px 20px rgba(139, 92, 246, 0.15);
+}
+
+.bg-slate-700 {
+  background: rgba(51, 65, 85, 0.6) !important;
+  border-color: rgba(167, 139, 250, 0.3) !important;
+}
+
+.border-slate-700, .border-slate-600 {
+  border-color: rgba(167, 139, 250, 0.25) !important;
+}
+
+.bg-blue-600 {
+  background: linear-gradient(135deg, #8b5cf6, #ec4899) !important;
+  border: none !important;
+}
+
+.hover\:bg-blue-700:hover {
+  background: linear-gradient(135deg, #7c3aed, #db2777) !important;
+}
+
+.border-blue-500 {
+  border-color: #ec4899 !important;
+}
+
+.text-blue-500 {
+  background: linear-gradient(135deg, #a78bfa, #f472b6);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.focus\:border-blue-500:focus {
+  border-color: #ec4899 !important;
+}
