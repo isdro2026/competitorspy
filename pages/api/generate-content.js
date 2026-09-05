@@ -15,7 +15,7 @@ export default async function handler(req, res) {
 
     const message = await anthropic.messages.create({
       model: 'claude-sonnet-4-5',
-      max_tokens: 3000,
+      max_tokens: 4000,
       messages: [{
         role: 'user',
         content: `You are a marketing content generator for the niche: "${niche}".
@@ -32,9 +32,14 @@ Generate marketing content and return ONLY a JSON object (no markdown, no explan
     "content": "a 3-paragraph blog post intro/body, written in a helpful, engaging tone, plain text with paragraphs separated by newlines"
   },
   "socialCaptions": [
-    {"platform": "Instagram", "caption": "a caption with relevant hashtags"},
+    {"platform": "Instagram", "caption": "a caption with relevant hashtags, casual and visual tone"},
+    {"platform": "Facebook", "caption": "a slightly longer, conversational caption suited to Facebook's older, community-driven audience"},
     {"platform": "Twitter/X", "caption": "a short punchy caption under 280 characters"},
-    {"platform": "TikTok", "caption": "a short, trend-aware caption with hashtags"}
+    {"platform": "TikTok", "caption": "a short, trend-aware caption with hashtags"},
+    {"platform": "LinkedIn", "caption": "a professional-toned post suited to LinkedIn, focused on business value or industry angle, minimal hashtags"},
+    {"platform": "Pinterest", "caption": "a descriptive, keyword-rich caption suited to Pinterest search and discovery"},
+    {"platform": "Google Ads", "caption": "a search ad in the format 'Headline: ...' on one line and 'Description: ...' on the next, no hashtags, keyword-focused"},
+    {"platform": "Microsoft Ads", "caption": "a search ad in the format 'Headline: ...' on one line and 'Description: ...' on the next, no hashtags, keyword-focused"}
   ]
 }`,
       }],
