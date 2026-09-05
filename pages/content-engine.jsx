@@ -183,16 +183,16 @@ export default function ContentEngine() {
               >
                 {publishedSlug ? 'Published' : publishing ? 'Publishing...' : 'Publish to Blog'}
               </button>
-              {publishedSlug && (
-                
-                  href={`/blog/${publishedSlug}`}
+              {publishedSlug ? (
+                <a
+                  href={'/blog/' + publishedSlug}
                   target="_blank"
                   rel="noreferrer"
                   style={{ fontSize: 13, color: '#0070f3' }}
                 >
-                  View live post →
+                  View live post -&gt;
                 </a>
-              )}
+              ) : null}
             </div>
           </div>
 
