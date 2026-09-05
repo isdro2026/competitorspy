@@ -1,119 +1,56 @@
-// pages/api/generate-content.js
 import Anthropic from '@anthropic-ai/sdk';
-import axios from 'axios';
-
-const client = new Anthropic();
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
+    return res.status(405).json({ success: false, error: 'Method not allowed' });
   }
 
-  const { 
-    contentType, // 'blog_post', 'social_media', 'ad_copy', 'landing_page'
-    platform, // 'instagram', 'facebook', 'linkedin', 'twitter', 'blog'
-    competitorName,
-    competitorKeywords,
-    competitorContent,
-    productName
-  } = req.body;
-
-  if (!contentType || !platform) {
-    return res.status(400).json({ error: 'contentType and platform are required' });
+  const { niche } = req.body;
+  if (!niche || !niche.trim()) {
+    return res.status(400).json({ success: false, error: 'Niche is required' });
   }
 
   try {
-    // Create prompt based on content type
-    const prompt = buildPrompt(
-      contentType,
-      platform,
-      competitorName,
-      competitorKeywords,
-      competitorContent,
-      productName
-    );
+    const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
-    // Generate content with Claude
-    const message = await client.messages.create({
-      model: 'claude-opus-4-6',
-      max_tokens: 1024,
-      messages: [
-        {
-          role: 'user',
-          content: prompt
-        }
-      ]
+    const message = await anthropic.messages.create({
+      model: 'claude-sonnet-4-5',
+      max_tokens: 3000,
+      messages: [{
+        role: 'user',
+        content: `You are a marketing content generator for the niche: "${niche}".
+
+Generate marketing content and return ONLY a JSON object (no markdown, no explanation) with this exact shape:
+{
+  "adCopy": {
+    "headline": "short punchy ad headline, under 40 characters",
+    "primaryText": "1-2 sentence ad body copy for Facebook/Instagram ads",
+    "cta": "a short call-to-action button label, e.g. Shop Now"
+  },
+  "blogPost": {
+    "title": "an SEO-friendly blog post title for this niche",
+    "content": "a 3-paragraph blog post intro/body, written in a helpful, engaging tone, plain text with paragraphs separated by newlines"
+  },
+  "socialCaptions": [
+    {"platform": "Instagram", "caption": "a caption with relevant hashtags"},
+    {"platform": "Twitter/X", "caption": "a short punchy caption under 280 characters"},
+    {"platform": "TikTok", "caption": "a short, trend-aware caption with hashtags"}
+  ]
+}`,
+      }],
     });
 
-    const generatedContent = message.content[0].type === 'text' 
-      ? message.content[0].text 
-      : '';
+    const raw = message.content[0].text.trim();
+    const jsonMatch = raw.match(/\{[\s\S]*\}/);
+    const content = jsonMatch ? JSON.parse(jsonMatch[0]) : null;
 
-    return res.status(200).json({
-      success: true,
-      data: {
-        contentType,
-        platform,
-        content: generatedContent,
-        generatedAt: new Date().toISOString()
-      }
-    });
+    if (!content) {
+      throw new Error('Could not parse generated content');
+    }
 
+    return res.status(200).json({ success: true, data: content });
   } catch (error) {
-    console.error('Content generation error:', error.message);
-    return res.status(500).json({ 
-      error: 'Failed to generate content',
-      details: error.message 
-    });
+    console.error('generate-content error:', error);
+    return res.status(500).json({ success: false, error: error.message });
   }
-}
-
-function buildPrompt(contentType, platform, competitorName, keywords, content, productName) {
-  const keywordStr = keywords ? keywords.map(k => k.word).join(', ') : '';
-  
-  const prompts = {
-    blog_post: `Write a SEO-optimized blog post (500-800 words) about ${productName}. 
-      Analyze this competitor content from ${competitorName}:
-      "${content}"
-      
-      Use these keywords naturally: ${keywordStr}
-      
-      Make it better, more informative, and unique. Include:
-      - Compelling headline
-      - Introduction
-      - 3-4 main sections with subheadings
-      - Conclusion
-      - CTA`,
-
-    social_media: `Create engaging ${platform} posts (3 variations) for ${productName}.
-      Competitor is doing: "${content}"
-      Target keywords: ${keywordStr}
-      
-      Make them catchy, shareable, and include relevant hashtags for ${platform}.
-      Keep tone casual and engaging.`,
-
-    ad_copy: `Write 5 variations of compelling ad copy for ${productName} on ${platform}.
-      Competitor's approach: "${content}"
-      Key selling points keywords: ${keywordStr}
-      
-      Each variation should be:
-      - Attention-grabbing
-      - Include CTA (Click, Learn More, Buy)
-      - Character limits respected for ${platform}`,
-
-    landing_page: `Create a landing page copy for ${productName}.
-      Analyze competitor (${competitorName}): "${content}"
-      Keywords: ${keywordStr}
-      
-      Structure:
-      - Headline (benefits-focused)
-      - Subheadline
-      - Hero section copy
-      - 3 benefit sections
-      - Social proof section
-      - CTA button text
-      - Footer copy`
-  };
-
-  return prompts[contentType] || prompts.blog_post;
 }
