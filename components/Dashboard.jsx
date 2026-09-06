@@ -1,6 +1,7 @@
 // components/Dashboard.jsx
 import { useState, useEffect } from 'react';
 import { Search, BarChart3, Zap, Target } from 'lucide-react';
+import AnalyticsDashboard from './AnalyticsDashboard';
 
 export default function Dashboard() {
   const [competitors, setCompetitors] = useState([]);
@@ -285,10 +286,7 @@ const result = await response.json();
 
         {/* Analytics Tab */}
         {activeTab === 'analytics' && (
-          <div className="bg-slate-800 rounded-lg p-6 border border-slate-700">
-            <h2 className="text-xl font-bold text-white mb-4">Analytics Dashboard</h2>
-            <p className="text-slate-400">Analytics coming soon...</p>
-          </div>
+         <AnalyticsDashboard userId="demo-user"/>
         )}
       </div>
     </div>
