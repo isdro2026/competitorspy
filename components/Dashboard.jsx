@@ -39,13 +39,13 @@ export default function Dashboard() {
     setLoading(true);
 
     try {
-      const response = await fetch('/api/competitors', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
-      });
+    const response = await fetch('/api/competitors', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ name: formData.competitorName, website: formData.website, industry: formData.industry })
+});
 
-      const result = await response.json();
+const result = await response.json();
       if (result.success) {
         setFormData({ competitorName: '', website: '', industry: '' });
         fetchCompetitors();
