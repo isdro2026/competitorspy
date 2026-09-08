@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 export default function ContentEngine() {
   const [niche, setNiche] = useState('');
@@ -9,6 +9,38 @@ export default function ContentEngine() {
   const [publishing, setPublishing] = useState(false);
   const [publishedSlug, setPublishedSlug] = useState('');
 
+  const [linkedinConnected, setLinkedinConnected] = useState(false);
+  const [linkedinBanner, setLinkedinBanner] = useState(null);
+  const [postingPlatform, setPostingPlatform] = useState('');
+  const [postedPlatforms, setPostedPlatforms] = useState({});
+
+  useEffect(() => {
+    checkSocialStatus();
+
+    // Surface any redirect result from the LinkedIn OAuth callback.
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('linkedin_connected')) {
+      setLinkedinBanner({ type: 'success', message: 'LinkedIn connected!' });
+    } else if (params.get('linkedin_error')) {
+      setLinkedinBanner({ type: 'error', message: params.get('linkedin_error') });
+    }
+    if (params.get('linkedin_connected') || params.get('linkedin_error')) {
+      window.history.replaceState({}, '', '/content-engine');
+    }
+  }, []);
+
+  const checkSocialStatus = async () => {
+    try {
+      const res = await fetch('/api/social/status');
+      const json = await res.json();
+      if (json.success) {
+        setLinkedinConnected(json.data.some((a) => a.platform === 'linkedin'));
+      }
+    } catch (err) {
+      console.error('Error checking social status:', err);
+    }
+  };
+
   const handleGenerate = async (e) => {
     e.preventDefault();
     if (!niche.trim()) return;
@@ -17,6 +49,7 @@ export default function ContentEngine() {
     setError('');
     setContent(null);
     setPublishedSlug('');
+    setPostedPlatforms({});
 
     try {
       const res = await fetch('/api/generate-content', {
@@ -71,6 +104,29 @@ export default function ContentEngine() {
     }
   };
 
+  const handlePostToLinkedIn = async (caption) => {
+    setPostingPlatform('LinkedIn');
+    setLinkedinBanner(null);
+
+    try {
+      const res = await fetch('/api/social/post-linkedin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ caption }),
+      });
+      const json = await res.json();
+      if (json.success) {
+        setPostedPlatforms((prev) => ({ ...prev, LinkedIn: true }));
+      } else {
+        setLinkedinBanner({ type: 'error', message: json.error || 'Failed to post to LinkedIn' });
+      }
+    } catch (err) {
+      setLinkedinBanner({ type: 'error', message: err.message });
+    } finally {
+      setPostingPlatform('');
+    }
+  };
+
   const cardStyle = {
     border: '1px solid #e0e0e0',
     borderRadius: 8,
@@ -93,6 +149,54 @@ export default function ContentEngine() {
       <p style={{ color: '#666', marginBottom: 24 }}>
         Generate ad copy, a blog post, and social captions for any niche.
       </p>
+
+      {linkedinBanner && (
+        <div
+          style={{
+            padding: '10px 14px',
+            borderRadius: 6,
+            marginBottom: 20,
+            fontSize: 13,
+            background: linkedinBanner.type === 'success' ? '#dcfce7' : '#fee2e2',
+            color: linkedinBanner.type === 'success' ? '#166534' : '#991b1b',
+          }}
+        >
+          {linkedinBanner.message}
+        </div>
+      )}
+
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          padding: '10px 14px',
+          border: '1px solid #e0e0e0',
+          borderRadius: 8,
+          marginBottom: 24,
+          fontSize: 13,
+        }}
+      >
+        <span>
+          LinkedIn: {linkedinConnected ? <strong style={{ color: '#16a34a' }}>Connected</strong> : 'Not connected'}
+        </span>
+        {!linkedinConnected && (
+          <a
+            href="/api/auth/linkedin"
+            style={{
+              padding: '6px 12px',
+              borderRadius: 6,
+              background: '#0a66c2',
+              color: '#fff',
+              fontWeight: 600,
+              fontSize: 12,
+              textDecoration: 'none',
+            }}
+          >
+            Connect LinkedIn
+          </a>
+        )}
+      </div>
 
       <form onSubmit={handleGenerate} style={{ display: 'flex', gap: 10, marginBottom: 30 }}>
         <input
@@ -209,12 +313,32 @@ export default function ContentEngine() {
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <strong style={{ fontSize: 14 }}>{item.platform}</strong>
-                  <button
-                    style={copyBtnStyle}
-                    onClick={() => handleCopy(item.platform, item.caption)}
-                  >
-                    {copiedKey === item.platform ? 'Copied!' : 'Copy'}
-                  </button>
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    {item.platform === 'LinkedIn' && linkedinConnected && (
+                      <button
+                        style={{
+                          ...copyBtnStyle,
+                          background: postedPlatforms.LinkedIn ? '#dcfce7' : '#0a66c2',
+                          color: postedPlatforms.LinkedIn ? '#166534' : '#fff',
+                          border: 'none',
+                        }}
+                        disabled={postingPlatform === 'LinkedIn' || postedPlatforms.LinkedIn}
+                        onClick={() => handlePostToLinkedIn(item.caption)}
+                      >
+                        {postedPlatforms.LinkedIn
+                          ? 'Posted!'
+                          : postingPlatform === 'LinkedIn'
+                          ? 'Posting...'
+                          : 'Post to LinkedIn'}
+                      </button>
+                    )}
+                    <button
+                      style={copyBtnStyle}
+                      onClick={() => handleCopy(item.platform, item.caption)}
+                    >
+                      {copiedKey === item.platform ? 'Copied!' : 'Copy'}
+                    </button>
+                  </div>
                 </div>
                 <p style={{ marginTop: 6, color: '#444', whiteSpace: 'pre-wrap', fontSize: 14 }}>
                   {item.caption}
