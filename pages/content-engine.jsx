@@ -13,11 +13,11 @@ export default function ContentEngine() {
   const [linkedinBanner, setLinkedinBanner] = useState(null);
   const [postingPlatform, setPostingPlatform] = useState('');
   const [postedPlatforms, setPostedPlatforms] = useState({});
+  const [linkedinDraft, setLinkedinDraft] = useState('');
 
   useEffect(() => {
     checkSocialStatus();
 
-    // Surface any redirect result from the LinkedIn OAuth callback.
     const params = new URLSearchParams(window.location.search);
     if (params.get('linkedin_connected')) {
       setLinkedinBanner({ type: 'success', message: 'LinkedIn connected!' });
@@ -50,6 +50,7 @@ export default function ContentEngine() {
     setContent(null);
     setPublishedSlug('');
     setPostedPlatforms({});
+    setLinkedinDraft('');
 
     try {
       const res = await fetch('/api/generate-content', {
@@ -60,6 +61,8 @@ export default function ContentEngine() {
       const json = await res.json();
       if (json.success) {
         setContent(json.data);
+        const li = json.data.socialCaptions.find((c) => c.platform === 'LinkedIn');
+        setLinkedinDraft(li ? li.caption : '');
       } else {
         setError(json.error || 'Failed to generate content');
       }
@@ -104,7 +107,8 @@ export default function ContentEngine() {
     }
   };
 
-  const handlePostToLinkedIn = async (caption) => {
+  const handlePostToLinkedIn = async () => {
+    if (!linkedinDraft.trim()) return;
     setPostingPlatform('LinkedIn');
     setLinkedinBanner(null);
 
@@ -112,7 +116,7 @@ export default function ContentEngine() {
       const res = await fetch('/api/social/post-linkedin', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ caption }),
+        body: JSON.stringify({ caption: linkedinDraft }),
       });
       const json = await res.json();
       if (json.success) {
@@ -302,49 +306,82 @@ export default function ContentEngine() {
 
           <div style={cardStyle}>
             <h2 style={{ fontSize: 18, marginBottom: 10 }}>Social Captions</h2>
-            {content.socialCaptions.map((item) => (
-              <div
-                key={item.platform}
-                style={{
-                  borderTop: '1px solid #eee',
-                  paddingTop: 12,
-                  marginTop: 12,
-                }}
-              >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <strong style={{ fontSize: 14 }}>{item.platform}</strong>
-                  <div style={{ display: 'flex', gap: 8 }}>
-                    {item.platform === 'LinkedIn' && linkedinConnected && (
+            {content.socialCaptions.map((item) => {
+              const isLinkedIn = item.platform === 'LinkedIn';
+              return (
+                <div
+                  key={item.platform}
+                  style={{
+                    borderTop: '1px solid #eee',
+                    paddingTop: 12,
+                    marginTop: 12,
+                  }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <strong style={{ fontSize: 14 }}>{item.platform}</strong>
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      {isLinkedIn && linkedinConnected && (
+                        <button
+                          style={{
+                            ...copyBtnStyle,
+                            background: postedPlatforms.LinkedIn ? '#dcfce7' : '#0a66c2',
+                            color: postedPlatforms.LinkedIn ? '#166534' : '#fff',
+                            border: 'none',
+                          }}
+                          disabled={postingPlatform === 'LinkedIn' || postedPlatforms.LinkedIn || !linkedinDraft.trim()}
+                          onClick={handlePostToLinkedIn}
+                        >
+                          {postedPlatforms.LinkedIn
+                            ? 'Posted!'
+                            : postingPlatform === 'LinkedIn'
+                            ? 'Posting...'
+                            : 'Post to LinkedIn'}
+                        </button>
+                      )}
                       <button
-                        style={{
-                          ...copyBtnStyle,
-                          background: postedPlatforms.LinkedIn ? '#dcfce7' : '#0a66c2',
-                          color: postedPlatforms.LinkedIn ? '#166534' : '#fff',
-                          border: 'none',
+                        style={copyBtnStyle}
+                        onClick={() => handleCopy(item.platform, isLinkedIn ? linkedinDraft : item.caption)}
+                      >
+                        {copiedKey === item.platform ? 'Copied!' : 'Copy'}
+                      </button>
+                    </div>
+                  </div>
+
+                  {isLinkedIn && linkedinConnected ? (
+                    <>
+                      <textarea
+                        value={linkedinDraft}
+                        onChange={(e) => {
+                          setLinkedinDraft(e.target.value);
+                          setPostedPlatforms((prev) => ({ ...prev, LinkedIn: false }));
                         }}
                         disabled={postingPlatform === 'LinkedIn' || postedPlatforms.LinkedIn}
-                        onClick={() => handlePostToLinkedIn(item.caption)}
-                      >
-                        {postedPlatforms.LinkedIn
-                          ? 'Posted!'
-                          : postingPlatform === 'LinkedIn'
-                          ? 'Posting...'
-                          : 'Post to LinkedIn'}
-                      </button>
-                    )}
-                    <button
-                      style={copyBtnStyle}
-                      onClick={() => handleCopy(item.platform, item.caption)}
-                    >
-                      {copiedKey === item.platform ? 'Copied!' : 'Copy'}
-                    </button>
-                  </div>
+                        rows={5}
+                        style={{
+                          marginTop: 6,
+                          width: '100%',
+                          fontFamily: 'inherit',
+                          fontSize: 14,
+                          color: '#222',
+                          padding: 10,
+                          borderRadius: 6,
+                          border: '1px solid #ccc',
+                          resize: 'vertical',
+                          boxSizing: 'border-box',
+                        }}
+                      />
+                      <p style={{ marginTop: 4, fontSize: 12, color: '#888' }}>
+                        Preview and edit before posting -- this is exactly what will be published to LinkedIn.
+                      </p>
+                    </>
+                  ) : (
+                    <p style={{ marginTop: 6, color: '#444', whiteSpace: 'pre-wrap', fontSize: 14 }}>
+                      {item.caption}
+                    </p>
+                  )}
                 </div>
-                <p style={{ marginTop: 6, color: '#444', whiteSpace: 'pre-wrap', fontSize: 14 }}>
-                  {item.caption}
-                </p>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </>
       )}
