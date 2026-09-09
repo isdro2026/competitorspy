@@ -8,6 +8,7 @@ export default function ContentEngine() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [content, setContent] = useState(null);
+  const [promotedProduct, setPromotedProduct] = useState(null);
   const [copiedKey, setCopiedKey] = useState('');
   const [publishing, setPublishing] = useState(false);
   const [publishedSlug, setPublishedSlug] = useState('');
@@ -28,6 +29,7 @@ export default function ContentEngine() {
     setLoading(true);
     setError('');
     setContent(null);
+    setPromotedProduct(null);
     setPublishedSlug('');
 
     try {
@@ -39,6 +41,7 @@ export default function ContentEngine() {
       const json = await res.json();
       if (json.success) {
         setContent(json.data);
+        setPromotedProduct(json.product || null);
       } else {
         setError(json.error || 'Failed to generate content');
       }
@@ -99,6 +102,42 @@ export default function ContentEngine() {
     background: '#fafafa',
     cursor: 'pointer',
   };
+
+  const ProductChip = () =>
+    promotedProduct ? (
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 10,
+          marginTop: 10,
+          padding: 10,
+          borderRadius: 8,
+          background: '#faf5ff',
+          border: '1px solid #e9d5ff',
+        }}
+      >
+        {promotedProduct.image_url && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={promotedProduct.image_url}
+            alt={promotedProduct.name}
+            style={{ width: 48, height: 48, objectFit: 'cover', borderRadius: 6, flexShrink: 0 }}
+          />
+        )}
+        <div style={{ flex: 1 }}>
+          <div style={{ fontSize: 13, fontWeight: 600, color: '#222' }}>{promotedProduct.name}</div>
+          <a
+            href={promotedProduct.product_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ fontSize: 12, color: '#7c3aed' }}
+          >
+            Shop this product -&gt;
+          </a>
+        </div>
+      </div>
+    ) : null;
 
   return (
     <div style={{ maxWidth: 700, margin: '0 auto', padding: '40px 20px' }}>
@@ -199,6 +238,7 @@ export default function ContentEngine() {
             <p style={{ marginTop: 10 }}><strong>{content.adCopy.headline}</strong></p>
             <p style={{ marginTop: 6, color: '#444' }}>{content.adCopy.primaryText}</p>
             <p style={{ marginTop: 6, color: '#0070f3', fontWeight: 600 }}>{content.adCopy.cta}</p>
+            <ProductChip />
           </div>
 
           <div style={cardStyle}>
@@ -217,6 +257,7 @@ export default function ContentEngine() {
             <p style={{ marginTop: 6, color: '#444', whiteSpace: 'pre-wrap' }}>
               {content.blogPost.content}
             </p>
+            <ProductChip />
 
             <div style={{ marginTop: 16, display: 'flex', alignItems: 'center', gap: 12 }}>
               <button
@@ -271,6 +312,7 @@ export default function ContentEngine() {
                 <p style={{ marginTop: 6, color: '#444', whiteSpace: 'pre-wrap', fontSize: 14 }}>
                   {item.caption}
                 </p>
+                {['LinkedIn', 'Facebook', 'Pinterest', 'Instagram'].includes(item.platform) && <ProductChip />}
               </div>
             ))}
           </div>
