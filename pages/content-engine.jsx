@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 
 export default function ContentEngine() {
   const [niche, setNiche] = useState('');
@@ -150,8 +151,13 @@ export default function ContentEngine() {
   return (
     <div style={{ maxWidth: 700, margin: '0 auto', padding: '40px 20px' }}>
       <h1 style={{ fontSize: 28, marginBottom: 8 }}>Content Engine</h1>
-      <p style={{ color: '#666', marginBottom: 24 }}>
+      <p style={{ color: '#666', marginBottom: 8 }}>
         Generate ad copy, a blog post, and social captions for any niche.
+      </p>
+      <p style={{ marginBottom: 24 }}>
+        <Link href="/schedules" style={{ fontSize: 13, color: '#0070f3' }}>
+          Set up auto-posting schedules -&gt;
+        </Link>
       </p>
 
       {linkedinBanner && (
