@@ -7,9 +7,11 @@ function detectInputType(value) {
 
 export default function Schedules() {
   const [schedules, setSchedules] = useState([]);
+  const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [inputValue, setInputValue] = useState('');
   const [frequency, setFrequency] = useState('daily');
+  const [productId, setProductId] = useState('');
   const [previewCaption, setPreviewCaption] = useState('');
   const [previewing, setPreviewing] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -17,6 +19,7 @@ export default function Schedules() {
 
   useEffect(() => {
     loadSchedules();
+    loadProducts();
   }, []);
 
   const loadSchedules = async () => {
@@ -36,6 +39,16 @@ export default function Schedules() {
     }
   };
 
+  const loadProducts = async () => {
+    try {
+      const res = await fetch('/api/products');
+      const json = await res.json();
+      if (json.success) setProducts(json.data);
+    } catch (err) {
+      // non-fatal
+    }
+  };
+
   const handlePreview = async () => {
     if (!inputValue.trim()) return;
     setPreviewing(true);
@@ -49,6 +62,7 @@ export default function Schedules() {
         body: JSON.stringify({
           inputType: detectInputType(inputValue),
           inputValue: inputValue.trim(),
+          productId: productId || null,
         }),
       });
       const json = await res.json();
@@ -78,6 +92,7 @@ export default function Schedules() {
           inputValue: inputValue.trim(),
           frequency,
           previewCaption,
+          productId: productId || null,
         }),
       });
       const json = await res.json();
@@ -85,6 +100,7 @@ export default function Schedules() {
         setInputValue('');
         setPreviewCaption('');
         setFrequency('daily');
+        setProductId('');
         await loadSchedules();
       } else {
         setError(json.error || 'Failed to create schedule');
@@ -98,7 +114,7 @@ export default function Schedules() {
 
   const handleToggle = async (id, active) => {
     try {
-      await fetch('/api/schedules/' + id, {
+      await fetch(`/api/schedules/${id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ active: !active }),
@@ -112,7 +128,7 @@ export default function Schedules() {
   const handleDelete = async (id) => {
     if (!confirm('Delete this schedule?')) return;
     try {
-      await fetch('/api/schedules/' + id, { method: 'DELETE' });
+      await fetch(`/api/schedules/${id}`, { method: 'DELETE' });
       await loadSchedules();
     } catch (err) {
       setError(err.message);
@@ -120,7 +136,7 @@ export default function Schedules() {
   };
 
   const formatDate = (iso) => {
-    if (!iso) return '—';
+    if (!iso) return '\u2014';
     return new Date(iso).toLocaleString();
   };
 
@@ -156,10 +172,14 @@ export default function Schedules() {
         <Link href="/content-engine" style={{ fontSize: 13, color: '#7ab8ff' }}>
           &lt;- Back to Content Engine
         </Link>
+        {' \u00b7 '}
+        <Link href="/products" style={{ fontSize: 13, color: '#7ab8ff' }}>
+          Product Library
+        </Link>
       </p>
 
       <div style={{ ...cardStyle, marginBottom: 30 }}>
-        <label style={{ fontSize: 13, fontWeight: 600, display: 'block', marginBottom: 6, color: '#222' }}>
+        <label style={{ fontSize: 13, fontWeight: 600, display: 'block', marginBottom: 6 }}>
           Niche or URL
         </label>
         <div style={{ display: 'flex', gap: 10, marginBottom: 10 }}>
@@ -177,7 +197,6 @@ export default function Schedules() {
               borderRadius: 6,
               border: '1px solid #ccc',
               fontSize: 14,
-              color: '#222',
             }}
           />
           <button
@@ -193,20 +212,53 @@ export default function Schedules() {
           </button>
         </div>
         {inputValue.trim() && (
-          <p style={{ fontSize: 12, color: '#666', marginTop: -4, marginBottom: 10 }}>
+          <p style={{ fontSize: 12, color: '#888', marginTop: -4, marginBottom: 10 }}>
             Detected as: <strong>{inputType === 'url' ? 'URL' : 'Niche/topic'}</strong>
           </p>
         )}
 
+        <label style={{ fontSize: 13, fontWeight: 600, display: 'block', marginBottom: 6 }}>
+          Promote a product (optional)
+        </label>
+        <select
+          value={productId}
+          onChange={(e) => {
+            setProductId(e.target.value);
+            setPreviewCaption('');
+          }}
+          style={{
+            width: '100%',
+            padding: '10px 14px',
+            borderRadius: 6,
+            border: '1px solid #ccc',
+            fontSize: 14,
+            marginBottom: 4,
+          }}
+        >
+          <option value="">No product</option>
+          {products.map((p) => (
+            <option key={p.id} value={p.id}>
+              {p.name} ({p.platform})
+            </option>
+          ))}
+        </select>
+        <p style={{ fontSize: 12, color: '#888', marginTop: 0, marginBottom: 10 }}>
+          {products.length === 0 ? (
+            <>No products saved yet -- add one in the Product Library.</>
+          ) : (
+            <>Every scheduled run will mention this product and link to it.</>
+          )}
+        </p>
+
         {previewCaption && (
           <>
-            <label style={{ fontSize: 13, fontWeight: 600, display: 'block', marginTop: 10, marginBottom: 6, color: '#222' }}>
+            <label style={{ fontSize: 13, fontWeight: 600, display: 'block', marginTop: 10, marginBottom: 6 }}>
               Preview -- tweak before scheduling
             </label>
             <textarea
               value={previewCaption}
               onChange={(e) => setPreviewCaption(e.target.value)}
-              rows={5}
+              rows={6}
               style={{
                 width: '100%',
                 fontFamily: 'inherit',
@@ -220,7 +272,7 @@ export default function Schedules() {
                 marginBottom: 12,
               }}
             />
-            <p style={{ fontSize: 12, color: '#666', marginBottom: 12 }}>
+            <p style={{ fontSize: 12, color: '#888', marginBottom: 12 }}>
               This preview just confirms the tone. Each scheduled run generates a fresh post based
               on this {inputType === 'url' ? 'URL' : 'niche'} -- it won't repeat the same text every time.
             </p>
@@ -234,7 +286,6 @@ export default function Schedules() {
                   borderRadius: 6,
                   border: '1px solid #ccc',
                   fontSize: 14,
-                  color: '#222',
                 }}
               >
                 <option value="daily">Daily</option>
@@ -268,7 +319,7 @@ export default function Schedules() {
           <div key={s.id} style={cardStyle}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
-                <strong style={{ fontSize: 15, color: '#222' }}>{s.input_value}</strong>
+                <strong style={{ fontSize: 15 }}>{s.input_value}</strong>
                 <span style={{ marginLeft: 10, fontSize: 11, color: '#888', textTransform: 'uppercase' }}>
                   {s.input_type}
                 </span>
@@ -297,7 +348,6 @@ export default function Schedules() {
                     borderRadius: 6,
                     border: '1px solid #ccc',
                     background: '#fafafa',
-                    color: '#222',
                     cursor: 'pointer',
                   }}
                 >
@@ -319,11 +369,16 @@ export default function Schedules() {
                 </button>
               </div>
             </div>
-            <div style={{ marginTop: 10, fontSize: 12, color: '#666' }}>
+            {s.products && (
+              <div style={{ marginTop: 8, fontSize: 12, color: '#7c3aed' }}>
+                Promoting: {s.products.name} ({s.products.platform})
+              </div>
+            )}
+            <div style={{ marginTop: 10, fontSize: 12, color: '#888' }}>
               Next run: {formatDate(s.next_run_at)}
               {s.last_run_at && (
                 <>
-                  {' · '}Last run: {formatDate(s.last_run_at)} (
+                  {' \u00b7 '}Last run: {formatDate(s.last_run_at)} (
                   <span style={{ color: s.last_status === 'success' ? '#16a34a' : '#dc2626' }}>
                     {s.last_status}
                   </span>
