@@ -129,6 +129,7 @@ export default function Schedules() {
     borderRadius: 8,
     padding: 16,
     marginBottom: 12,
+    background: '#fff',
   };
 
   const btnStyle = {
@@ -146,19 +147,19 @@ export default function Schedules() {
 
   return (
     <div style={{ maxWidth: 700, margin: '0 auto', padding: '40px 20px' }}>
-      <h1 style={{ fontSize: 28, marginBottom: 8 }}>Scheduled Posts</h1>
-      <p style={{ color: '#666', marginBottom: 8 }}>
+      <h1 style={{ fontSize: 28, marginBottom: 8, color: '#fff' }}>Scheduled Posts</h1>
+      <p style={{ color: '#ddd', marginBottom: 8 }}>
         Type a niche or paste a URL, preview and tweak the LinkedIn post, then set it to auto-post
         daily, weekly, or monthly.
       </p>
       <p style={{ marginBottom: 24 }}>
-        <Link href="/content-engine" style={{ fontSize: 13, color: '#0070f3' }}>
+        <Link href="/content-engine" style={{ fontSize: 13, color: '#7ab8ff' }}>
           &lt;- Back to Content Engine
         </Link>
       </p>
 
       <div style={{ ...cardStyle, marginBottom: 30 }}>
-        <label style={{ fontSize: 13, fontWeight: 600, display: 'block', marginBottom: 6 }}>
+        <label style={{ fontSize: 13, fontWeight: 600, display: 'block', marginBottom: 6, color: '#222' }}>
           Niche or URL
         </label>
         <div style={{ display: 'flex', gap: 10, marginBottom: 10 }}>
@@ -176,6 +177,7 @@ export default function Schedules() {
               borderRadius: 6,
               border: '1px solid #ccc',
               fontSize: 14,
+              color: '#222',
             }}
           />
           <button
@@ -191,14 +193,14 @@ export default function Schedules() {
           </button>
         </div>
         {inputValue.trim() && (
-          <p style={{ fontSize: 12, color: '#888', marginTop: -4, marginBottom: 10 }}>
+          <p style={{ fontSize: 12, color: '#666', marginTop: -4, marginBottom: 10 }}>
             Detected as: <strong>{inputType === 'url' ? 'URL' : 'Niche/topic'}</strong>
           </p>
         )}
 
         {previewCaption && (
           <>
-            <label style={{ fontSize: 13, fontWeight: 600, display: 'block', marginTop: 10, marginBottom: 6 }}>
+            <label style={{ fontSize: 13, fontWeight: 600, display: 'block', marginTop: 10, marginBottom: 6, color: '#222' }}>
               Preview -- tweak before scheduling
             </label>
             <textarea
@@ -218,7 +220,7 @@ export default function Schedules() {
                 marginBottom: 12,
               }}
             />
-            <p style={{ fontSize: 12, color: '#888', marginBottom: 12 }}>
+            <p style={{ fontSize: 12, color: '#666', marginBottom: 12 }}>
               This preview just confirms the tone. Each scheduled run generates a fresh post based
               on this {inputType === 'url' ? 'URL' : 'niche'} -- it won't repeat the same text every time.
             </p>
@@ -232,6 +234,7 @@ export default function Schedules() {
                   borderRadius: 6,
                   border: '1px solid #ccc',
                   fontSize: 14,
+                  color: '#222',
                 }}
               >
                 <option value="daily">Daily</option>
@@ -254,18 +257,18 @@ export default function Schedules() {
         )}
       </div>
 
-      {error && <p style={{ color: 'red', marginBottom: 20 }}>{error}</p>}
+      {error && <p style={{ color: '#ff8080', marginBottom: 20 }}>{error}</p>}
 
       {loading ? (
-        <p style={{ color: '#666' }}>Loading...</p>
+        <p style={{ color: '#ddd' }}>Loading...</p>
       ) : schedules.length === 0 ? (
-        <p style={{ color: '#666' }}>No schedules yet. Add one above to start auto-posting.</p>
+        <p style={{ color: '#ddd' }}>No schedules yet. Add one above to start auto-posting.</p>
       ) : (
         schedules.map((s) => (
           <div key={s.id} style={cardStyle}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
-                <strong style={{ fontSize: 15 }}>{s.input_value}</strong>
+                <strong style={{ fontSize: 15, color: '#222' }}>{s.input_value}</strong>
                 <span style={{ marginLeft: 10, fontSize: 11, color: '#888', textTransform: 'uppercase' }}>
                   {s.input_type}
                 </span>
@@ -294,6 +297,7 @@ export default function Schedules() {
                     borderRadius: 6,
                     border: '1px solid #ccc',
                     background: '#fafafa',
+                    color: '#222',
                     cursor: 'pointer',
                   }}
                 >
@@ -315,7 +319,7 @@ export default function Schedules() {
                 </button>
               </div>
             </div>
-            <div style={{ marginTop: 10, fontSize: 12, color: '#888' }}>
+            <div style={{ marginTop: 10, fontSize: 12, color: '#666' }}>
               Next run: {formatDate(s.next_run_at)}
               {s.last_run_at && (
                 <>
@@ -328,7 +332,7 @@ export default function Schedules() {
               )}
             </div>
             {s.last_caption && (
-              <div style={{ marginTop: 8, fontSize: 13, color: '#444', whiteSpace: 'pre-wrap', borderTop: '1px solid #eee', paddingTop: 8 }}>
+              <div style={{ marginTop: 8, fontSize: 13, color: '#333', whiteSpace: 'pre-wrap', borderTop: '1px solid #eee', paddingTop: 8 }}>
                 {s.last_caption}
               </div>
             )}
