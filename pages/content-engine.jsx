@@ -3,12 +3,14 @@ import Link from 'next/link';
 
 export default function ContentEngine() {
   const [niche, setNiche] = useState('');
+  const [keyword, setKeyword] = useState('');
   const [products, setProducts] = useState([]);
   const [productId, setProductId] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [content, setContent] = useState(null);
   const [promotedProduct, setPromotedProduct] = useState(null);
+  const [keywordData, setKeywordData] = useState([]);
   const [copiedKey, setCopiedKey] = useState('');
   const [publishing, setPublishing] = useState(false);
   const [publishedSlug, setPublishedSlug] = useState('');
@@ -30,18 +32,20 @@ export default function ContentEngine() {
     setError('');
     setContent(null);
     setPromotedProduct(null);
+    setKeywordData([]);
     setPublishedSlug('');
 
     try {
       const res = await fetch('/api/generate-content', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ niche, productId: productId || null }),
+        body: JSON.stringify({ niche, productId: productId || null, keyword: keyword || null }),
       });
       const json = await res.json();
       if (json.success) {
         setContent(json.data);
         setPromotedProduct(json.product || null);
+        setKeywordData(json.keywordData || []);
       } else {
         setError(json.error || 'Failed to generate content');
       }
@@ -127,7 +131,7 @@ export default function ContentEngine() {
         )}
         <div style={{ flex: 1 }}>
           <div style={{ fontSize: 13, fontWeight: 600, color: '#222' }}>{promotedProduct.name}</div>
-          <a
+          
             href={promotedProduct.product_url}
             target="_blank"
             rel="noopener noreferrer"
@@ -188,6 +192,29 @@ export default function ContentEngine() {
         </div>
 
         <label style={{ fontSize: 13, fontWeight: 600, display: 'block', marginBottom: 6, color: '#ddd' }}>
+          Target keyword for Google/Microsoft Ads (optional)
+        </label>
+        <input
+          type="text"
+          value={keyword}
+          onChange={(e) => setKeyword(e.target.value)}
+          placeholder="e.g. organic dog treats near me"
+          style={{
+            width: '100%',
+            padding: '10px 14px',
+            borderRadius: 6,
+            border: '1px solid #ccc',
+            fontSize: 14,
+            marginBottom: 10,
+          }}
+        />
+        <p style={{ fontSize: 12, color: '#ddd', marginTop: -4, marginBottom: 16 }}>
+          Google Ads and Microsoft Ads are search/keyword-targeted, so ad copy there is built around this
+          keyword (with real search volume/CPC pulled in automatically). Leave blank to use the niche as
+          the keyword. Social captions don't need this -- they're audience-targeted, not keyword-targeted.
+        </p>
+
+        <label style={{ fontSize: 13, fontWeight: 600, display: 'block', marginBottom: 6, color: '#ddd' }}>
           Promote a product (optional)
         </label>
         <select
@@ -220,6 +247,33 @@ export default function ContentEngine() {
 
       {content && (
         <>
+          {keywordData.length > 0 && (
+            <div style={{ ...cardStyle, background: '#f0f9ff', border: '1px solid #bae6fd' }}>
+              <h2 style={{ fontSize: 14, marginBottom: 8, color: '#0369a1' }}>
+                Keyword data used for Google/Microsoft Ads
+              </h2>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                {keywordData.slice(0, 6).map((k) => (
+                  <span
+                    key={k.keyword}
+                    style={{
+                      fontSize: 12,
+                      background: '#fff',
+                      border: '1px solid #bae6fd',
+                      borderRadius: 999,
+                      padding: '4px 10px',
+                      color: '#075985',
+                    }}
+                  >
+                    {k.keyword}
+                    {k.searchVolume != null ? ` · ${k.searchVolume}/mo` : ''}
+                    {k.cpc != null ? ` · $${k.cpc} CPC` : ''}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
           <div style={cardStyle}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <h2 style={{ fontSize: 18 }}>Ad Copy</h2>
@@ -277,7 +331,7 @@ export default function ContentEngine() {
                 {publishedSlug ? 'Published' : publishing ? 'Publishing...' : 'Publish to Blog'}
               </button>
               {publishedSlug ? (
-                <a
+                
                   href={'/blog/' + publishedSlug}
                   target="_blank"
                   rel="noreferrer"
