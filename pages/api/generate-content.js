@@ -22,6 +22,23 @@ function appendProductToContent(content, product) {
   return content;
 }
 
+function extractJson(raw) {
+  let text = raw.trim();
+  text = text.replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/i, '').trim();
+
+  const start = text.indexOf('{');
+  const end = text.lastIndexOf('}');
+  if (start === -1 || end === -1 || end <= start) {
+    return null;
+  }
+  const candidate = text.slice(start, end + 1);
+  try {
+    return JSON.parse(candidate);
+  } catch (e) {
+    return null;
+  }
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ success: false, error: 'Method not allowed' });
@@ -47,12 +64,12 @@ export default async function handler(req, res) {
 
     const message = await anthropic.messages.create({
       model: 'claude-sonnet-4-5',
-      max_tokens: 4000,
+      max_tokens: 8000,
       messages: [{
         role: 'user',
         content: `You are a marketing content generator for the niche: "${niche}".${productInstruction}
 
-Generate marketing content and return ONLY a JSON object (no markdown, no explanation) with this exact shape:
+Generate marketing content and return ONLY a JSON object (no markdown, no explanation, no code fences) with this exact shape:
 {
   "adCopy": {
     "headline": "short punchy ad headline, under 40 characters",
@@ -73,16 +90,18 @@ Generate marketing content and return ONLY a JSON object (no markdown, no explan
     {"platform": "Google Ads", "caption": "a search ad in the format 'Headline: ...' on one line and 'Description: ...' on the next, no hashtags, keyword-focused"},
     {"platform": "Microsoft Ads", "caption": "a search ad in the format 'Headline: ...' on one line and 'Description: ...' on the next, no hashtags, keyword-focused"}
   ]
-}`,
+}
+
+Keep every field concise so the whole response stays well under the token limit. Return the JSON object only, nothing before or after it.`,
       }],
     });
 
-    const raw = message.content[0].text.trim();
-    const jsonMatch = raw.match(/{[sS]*}/);
-    let content = jsonMatch ? JSON.parse(jsonMatch[0]) : null;
+    const raw = message.content[0].text;
+    let content = extractJson(raw);
 
     if (!content) {
-      throw new Error('Could not parse generated content');
+      console.error('generate-content: could not parse. stop_reason=', message.stop_reason, 'raw length=', raw.length, 'raw snippet=', raw.slice(0, 300));
+      throw new Error('Could not parse generated content. Please try again.');
     }
 
     content = appendProductToContent(content, product);
