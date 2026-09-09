@@ -1,27 +1,6 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { supabase } from '@/lib/supabase';
 
-function appendProductToContent(content, product) {
-  if (!product) return content;
-
-  const imageMarkdown = product.image_url ? `![${product.name}](${product.image_url})\n\n` : '';
-  const productBlock = `\n\n---\n\n${imageMarkdown}**Recommended:** [${product.name}](${product.product_url})`;
-
-  content.blogPost.content = `${content.blogPost.content}${productBlock}`;
-
-  content.socialCaptions = content.socialCaptions.map((item) => {
-    if (item.platform === 'LinkedIn' || item.platform === 'Facebook' || item.platform === 'Pinterest') {
-      return {
-        ...item,
-        caption: `${item.caption}\n\nCheck it out: ${product.name} -> ${product.product_url}`,
-      };
-    }
-    return item;
-  });
-
-  return content;
-}
-
 function extractJson(raw) {
   let text = raw.trim();
   text = text.replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/i, '').trim();
@@ -57,7 +36,7 @@ export default async function handler(req, res) {
     }
 
     const productInstruction = product
-      ? `\n\nWeave in a natural, non-pushy mention of this product as a recommendation somewhere in the blog post and in the LinkedIn/Facebook/Pinterest captions, referring to it by name: "${product.name}". Do not invent a URL yourself and do not add a fake image reference -- that will be added separately.`
+      ? `\n\nWeave in a natural, non-pushy mention of this product as a recommendation somewhere in the blog post and in the LinkedIn/Facebook/Pinterest captions, referring to it by name: "${product.name}". Do not invent a URL yourself and do not add an image reference -- the product photo and link will be shown separately alongside your text.`
       : '';
 
     const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
@@ -97,16 +76,14 @@ Keep every field concise so the whole response stays well under the token limit.
     });
 
     const raw = message.content[0].text;
-    let content = extractJson(raw);
+    const content = extractJson(raw);
 
     if (!content) {
       console.error('generate-content: could not parse. stop_reason=', message.stop_reason, 'raw length=', raw.length, 'raw snippet=', raw.slice(0, 300));
       throw new Error('Could not parse generated content. Please try again.');
     }
 
-    content = appendProductToContent(content, product);
-
-    return res.status(200).json({ success: true, data: content });
+    return res.status(200).json({ success: true, data: content, product });
   } catch (error) {
     console.error('generate-content error:', error);
     return res.status(500).json({ success: false, error: error.message });
