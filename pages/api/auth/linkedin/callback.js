@@ -12,7 +12,7 @@ export default async function handler(req, res) {
   const { code, error, error_description } = req.query;
 
   if (error) {
-    return res.redirect(`/content-engine?linkedin_error=${encodeURIComponent(error_description || error)}`);
+    return res.redirect(`/dashboard?linkedin_error=${encodeURIComponent(error_description || error)}`);
   }
 
   if (!code) {
@@ -41,7 +41,7 @@ export default async function handler(req, res) {
 
     if (!tokenRes.ok || !tokenData.access_token) {
       console.error('LinkedIn token exchange failed:', tokenData);
-      return res.redirect(`/content-engine?linkedin_error=${encodeURIComponent(tokenData.error_description || 'Token exchange failed')}`);
+      return res.redirect(`/dashboard?linkedin_error=${encodeURIComponent(tokenData.error_description || 'Token exchange failed')}`);
     }
 
     const { access_token, expires_in } = tokenData;
@@ -54,7 +54,7 @@ export default async function handler(req, res) {
 
     if (!profileRes.ok || !profile.sub) {
       console.error('LinkedIn userinfo failed:', profile);
-      return res.redirect('/content-engine?linkedin_error=Could not read LinkedIn profile');
+      return res.redirect('/dashboard?linkedin_error=Could not read LinkedIn profile');
     }
 
     const memberUrn = `urn:li:person:${profile.sub}`;
@@ -78,12 +78,12 @@ export default async function handler(req, res) {
 
     if (dbError) {
       console.error('Failed to store LinkedIn account:', dbError);
-      return res.redirect('/content-engine?linkedin_error=Failed to save LinkedIn connection');
+      return res.redirect('/dashboard?linkedin_error=Failed to save LinkedIn connection');
     }
 
-    return res.redirect('/content-engine?linkedin_connected=1');
+    return res.redirect('/dashboard?linkedin_connected=1');
   } catch (err) {
     console.error('LinkedIn OAuth callback error:', err);
-    return res.redirect(`/content-engine?linkedin_error=${encodeURIComponent(err.message)}`);
+    return res.redirect(`/dashboard?linkedin_error=${encodeURIComponent(err.message)}`);
   }
 }
