@@ -161,7 +161,7 @@ export default function Dashboard() {
                 <span style={{ fontSize: 12, color: '#16a34a', fontWeight: 600 }}>✓ Active</span>
               ) : p.connectHref ? (
                 <a
-                  <href={p.connectHref}
+                  href={p.connectHref}
                   style={{
                     fontSize: 12,
                     padding: '6px 12px',
