@@ -131,7 +131,7 @@ export default function ContentEngine() {
         )}
         <div style={{ flex: 1 }}>
           <div style={{ fontSize: 13, fontWeight: 600, color: '#222' }}>{promotedProduct.name}</div>
-          
+          <a
             href={promotedProduct.product_url}
             target="_blank"
             rel="noopener noreferrer"
@@ -331,7 +331,7 @@ export default function ContentEngine() {
                 {publishedSlug ? 'Published' : publishing ? 'Publishing...' : 'Publish to Blog'}
               </button>
               {publishedSlug ? (
-                
+                <a
                   href={'/blog/' + publishedSlug}
                   target="_blank"
                   rel="noreferrer"
