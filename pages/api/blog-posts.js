@@ -33,7 +33,7 @@ export default async function handler(req, res) {
   }
 
   if (req.method === 'POST') {
-    const { niche, title, content } = req.body;
+    const { niche, title, content, productName, productImageUrl, productLink } = req.body;
     if (!title || !content) {
       return res.status(400).json({ success: false, error: 'Title and content are required' });
     }
@@ -57,7 +57,7 @@ export default async function handler(req, res) {
 
       const { data, error } = await supabase
         .from('blog_posts')
-        .insert([{ niche: niche || null, title, content, slug, published: true }])
+        .insert([{ niche: niche || null, title, content, slug, published: true, product_name: productName || null, product_image_url: productImageUrl || null, product_link: productLink || null }])
         .select()
         .single();
 

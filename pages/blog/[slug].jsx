@@ -47,6 +47,41 @@ export default function BlogPost() {
           }}
         >
           <h1 style={{ fontSize: 32, marginBottom: 8, color: '#111' }}>{post.title}</h1>
+
+          {post.product_link && (
+            <a
+              href={post.product_link}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 14,
+                marginBottom: 20,
+                padding: 14,
+                borderRadius: 8,
+                background: '#faf5ff',
+                border: '1px solid #e9d5ff',
+                textDecoration: 'none',
+              }}
+            >
+              {post.product_image_url && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={post.product_image_url}
+                  alt={post.product_name || 'Featured product'}
+                  style={{ width: 72, height: 72, objectFit: 'cover', borderRadius: 6, flexShrink: 0 }}
+                />
+              )}
+              <div>
+                <div style={{ fontSize: 12, color: '#7c3aed', fontWeight: 600, textTransform: 'uppercase', marginBottom: 2 }}>
+                  Featured product
+                </div>
+                <div style={{ fontSize: 15, fontWeight: 600, color: '#222' }}>{post.product_name}</div>
+                <div style={{ fontSize: 13, color: '#7c3aed', marginTop: 2 }}>Shop this product &gt;</div>
+              </div>
+            </a>
+          )}
           {post.niche && (
             <p style={{ fontSize: 13, color: '#888', marginBottom: 24 }}>
               Niche: {post.niche} · {new Date(post.created_at).toLocaleDateString()}

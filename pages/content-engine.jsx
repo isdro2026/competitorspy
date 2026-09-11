@@ -75,6 +75,9 @@ export default function ContentEngine() {
           niche,
           title: content.blogPost.title,
           content: content.blogPost.content,
+          productName: promotedProduct?.name || null,
+          productImageUrl: promotedProduct?.image_url || null,
+          productLink: promotedProduct?.product_url || null,
         }),
       });
       const json = await res.json();
