@@ -96,6 +96,7 @@ export default function Dashboard() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          niche: competitor?.industry || competitor?.name || 'general business',
           contentType: generatorData.contentType,
           platform: generatorData.platform,
           competitorName: competitor?.name || 'competitor',
