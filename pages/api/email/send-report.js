@@ -1,6 +1,6 @@
 // pages/api/email/send-report.js
 import { sendCompetitorReport } from '@/lib/emailService';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/lib/supabaseAdmin';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {

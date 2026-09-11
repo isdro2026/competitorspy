@@ -1,7 +1,7 @@
 // pages/api/generate-caption-preview.js
 import Anthropic from '@anthropic-ai/sdk';
 import { fetchArticleText } from '@/lib/articleText';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/lib/supabaseAdmin';
 
 function appendProductLine(caption, product) {
   if (!product) return caption;

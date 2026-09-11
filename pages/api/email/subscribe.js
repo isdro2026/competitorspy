@@ -1,6 +1,6 @@
 // pages/api/email/subscribe.js
 import { sendWelcomeEmail } from '@/lib/emailService';
-import { supabase } from '@/lib/supabase'; // You'll need to set up Supabase
+import { supabase } from '@/lib/supabaseAdmin'; // You'll need to set up Supabase
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {

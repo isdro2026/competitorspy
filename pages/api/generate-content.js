@@ -1,6 +1,6 @@
 
 import Anthropic from '@anthropic-ai/sdk';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/lib/supabaseAdmin';
 
 function extractJson(raw) {
   let text = raw.trim();

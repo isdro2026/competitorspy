@@ -1,7 +1,7 @@
 // pages/api/social/status.js
 // Reports which social platforms the current user has connected.
 
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/lib/supabaseAdmin';
 
 const APP_USER_ID = 'demo-user';
 

@@ -1,6 +1,6 @@
 // pages/api/cron/run-schedules.js
 import Anthropic from '@anthropic-ai/sdk';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/lib/supabaseAdmin';
 import { fetchArticleText } from '@/lib/articleText';
 
 const APP_USER_ID = 'demo-user';

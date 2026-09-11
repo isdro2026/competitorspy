@@ -2,7 +2,7 @@
 // Step 2 of LinkedIn OAuth: exchange the code for an access token, fetch the
 // user's LinkedIn URN, and store both in Supabase so we can post on their behalf later.
 
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/lib/supabaseAdmin';
 
 // No multi-tenant auth system yet — mirrors the "demo-user" convention used
 // elsewhere in the app (see AnalyticsDashboard / Dashboard.jsx).

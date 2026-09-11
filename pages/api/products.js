@@ -1,5 +1,5 @@
 // pages/api/products.js
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/lib/supabaseAdmin';
 
 const APP_USER_ID = 'demo-user';
 

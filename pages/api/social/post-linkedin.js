@@ -2,7 +2,7 @@
 // Posts a text caption to LinkedIn on behalf of the connected account,
 // using the stored OAuth access token from social_accounts.
 
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/lib/supabaseAdmin';
 
 const APP_USER_ID = 'demo-user';
 
