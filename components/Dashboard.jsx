@@ -1,10 +1,23 @@
 // components/Dashboard.jsx
 import { useState, useEffect } from 'react';
-import { Search, BarChart3, Zap, Target } from 'lucide-react';
+import { Search, BarChart3, Zap, Target, Mail } from 'lucide-react';
+import AnalyticsDashboard from './AnalyticsDashboard';
+
+const ANALYTICS_USER_ID = 'demo-user';
+
+// Fire-and-forget analytics tracking — never blocks the UI on failure
+const trackEvent = (eventType, data = {}) => {
+  fetch('/api/analytics/track', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ userId: ANALYTICS_USER_ID, eventType, data })
+  }).catch((error) => console.error('Analytics tracking error:', error));
+};
 
 export default function Dashboard() {
   const [competitors, setCompetitors] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [sendingReportId, setSendingReportId] = useState(null);
   const [activeTab, setActiveTab] = useState('scraper');
   const [formData, setFormData] = useState({
     competitorName: '',
@@ -21,6 +34,7 @@ export default function Dashboard() {
   // Fetch competitors on mount
   useEffect(() => {
     fetchCompetitors();
+    trackEvent('page_view', { page: 'dashboard' });
   }, []);
 
   const fetchCompetitors = async () => {
@@ -39,14 +53,18 @@ export default function Dashboard() {
     setLoading(true);
 
     try {
-      const response = await fetch('/api/competitors', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
-      });
+    const response = await fetch('/api/competitors', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ name: formData.competitorName, website: formData.website, industry: formData.industry })
+});
 
-      const result = await response.json();
+const result = await response.json();
       if (result.success) {
+        trackEvent('competitor_search', {
+          competitorName: formData.competitorName,
+          results: result.data ? 1 : 0
+        });
         setFormData({ competitorName: '', website: '', industry: '' });
         fetchCompetitors();
         alert('Competitor added!');
@@ -74,13 +92,55 @@ export default function Dashboard() {
 
       const result = await response.json();
       if (result.success) {
+        trackEvent('scraper', { url: website, success: true });
         alert('Scraping complete! Keywords extracted: ' + result.data.keywords.length);
         console.log('Scraped data:', result.data);
+      } else {
+        trackEvent('scraper', { url: website, success: false, errorMessage: result.error });
       }
     } catch (error) {
+      trackEvent('scraper', { url: website, success: false, errorMessage: error.message });
       alert('Error scraping: ' + error.message);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Email a competitor report via Resend
+  const handleSendReport = async (competitor) => {
+    const email = window.prompt('Send this competitor report to which email address?');
+    if (!email) return;
+
+    setSendingReportId(competitor.id);
+
+    try {
+      const response = await fetch('/api/email/send-report', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email,
+          competitorData: {
+            competitor: competitor.name,
+            url: competitor.website,
+            industry: competitor.industry,
+            insights: [
+              'Report generated from your CompetitorSpy dashboard.',
+              'Scrape this competitor for updated keyword insights.'
+            ]
+          }
+        })
+      });
+
+      const result = await response.json();
+      if (result.success) {
+        alert('Report sent to ' + email + '!');
+      } else {
+        alert('Error sending report: ' + (result.error || 'Unknown error'));
+      }
+    } catch (error) {
+      alert('Error sending report: ' + error.message);
+    } finally {
+      setSendingReportId(null);
     }
   };
 
@@ -91,7 +151,7 @@ export default function Dashboard() {
 
     try {
       const competitor = competitors.find(c => c.id == generatorData.competitorId);
-      
+
       const response = await fetch('/api/generate-content', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -220,13 +280,23 @@ export default function Dashboard() {
                       <h3 className="font-semibold text-white">{competitor.name}</h3>
                       <p className="text-slate-400 text-sm">{competitor.website}</p>
                     </div>
-                    <button
-                      onClick={() => handleScrape(competitor.id, competitor.website)}
-                      disabled={loading}
-                      className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded font-semibold disabled:opacity-50"
-                    >
-                      {loading ? 'Scraping...' : 'Scrape'}
-                    </button>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => handleScrape(competitor.id, competitor.website)}
+                        disabled={loading}
+                        className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded font-semibold disabled:opacity-50"
+                      >
+                        {loading ? 'Scraping...' : 'Scrape'}
+                      </button>
+                      <button
+                        onClick={() => handleSendReport(competitor)}
+                        disabled={sendingReportId === competitor.id}
+                        className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded font-semibold disabled:opacity-50 flex items-center gap-2"
+                      >
+                        <Mail className="w-4 h-4" />
+                        {sendingReportId === competitor.id ? 'Sending...' : 'Send Report'}
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -286,10 +356,7 @@ export default function Dashboard() {
 
         {/* Analytics Tab */}
         {activeTab === 'analytics' && (
-          <div className="bg-slate-800 rounded-lg p-6 border border-slate-700">
-            <h2 className="text-xl font-bold text-white mb-4">Analytics Dashboard</h2>
-            <p className="text-slate-400">Analytics coming soon...</p>
-          </div>
+         <AnalyticsDashboard userId="demo-user"/>
         )}
       </div>
     </div>

@@ -1,13 +1,28 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import Link from 'next/link';
 
 export default function ContentEngine() {
   const [niche, setNiche] = useState('');
+  const [keyword, setKeyword] = useState('');
+  const [products, setProducts] = useState([]);
+  const [productId, setProductId] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [content, setContent] = useState(null);
+  const [promotedProduct, setPromotedProduct] = useState(null);
+  const [keywordData, setKeywordData] = useState([]);
   const [copiedKey, setCopiedKey] = useState('');
   const [publishing, setPublishing] = useState(false);
   const [publishedSlug, setPublishedSlug] = useState('');
+
+  useEffect(() => {
+    fetch('/api/products')
+      .then((res) => res.json())
+      .then((json) => {
+        if (json.success) setProducts(json.data);
+      })
+      .catch(() => {});
+  }, []);
 
   const handleGenerate = async (e) => {
     e.preventDefault();
@@ -16,17 +31,21 @@ export default function ContentEngine() {
     setLoading(true);
     setError('');
     setContent(null);
+    setPromotedProduct(null);
+    setKeywordData([]);
     setPublishedSlug('');
 
     try {
       const res = await fetch('/api/generate-content', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ niche }),
+        body: JSON.stringify({ niche, productId: productId || null, keyword: keyword || null }),
       });
       const json = await res.json();
       if (json.success) {
         setContent(json.data);
+        setPromotedProduct(json.product || null);
+        setKeywordData(json.keywordData || []);
       } else {
         setError(json.error || 'Failed to generate content');
       }
@@ -76,6 +95,7 @@ export default function ContentEngine() {
     borderRadius: 8,
     padding: 20,
     marginBottom: 20,
+    background: '#fff',
   };
 
   const copyBtnStyle = {
@@ -87,48 +107,173 @@ export default function ContentEngine() {
     cursor: 'pointer',
   };
 
+  const ProductChip = () =>
+    promotedProduct ? (
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 10,
+          marginTop: 10,
+          padding: 10,
+          borderRadius: 8,
+          background: '#faf5ff',
+          border: '1px solid #e9d5ff',
+        }}
+      >
+        {promotedProduct.image_url && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={promotedProduct.image_url}
+            alt={promotedProduct.name}
+            style={{ width: 48, height: 48, objectFit: 'cover', borderRadius: 6, flexShrink: 0 }}
+          />
+        )}
+        <div style={{ flex: 1 }}>
+          <div style={{ fontSize: 13, fontWeight: 600, color: '#222' }}>{promotedProduct.name}</div>
+          <a
+            href={promotedProduct.product_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ fontSize: 12, color: '#7c3aed' }}
+          >
+            Shop this product -&gt;
+          </a>
+        </div>
+      </div>
+    ) : null;
+
   return (
     <div style={{ maxWidth: 700, margin: '0 auto', padding: '40px 20px' }}>
-      <h1 style={{ fontSize: 28, marginBottom: 8 }}>Content Engine</h1>
-      <p style={{ color: '#666', marginBottom: 24 }}>
+      <h1 style={{ fontSize: 28, marginBottom: 8, color: '#fff' }}>Content Engine</h1>
+      <p style={{ color: '#ddd', marginBottom: 8 }}>
         Generate ad copy, a blog post, and social captions for any niche.
       </p>
+      <p style={{ marginBottom: 24 }}>
+        <Link href="/schedules" style={{ fontSize: 13, color: '#7ab8ff' }}>
+          Set up auto-posting schedules -&gt;
+        </Link>
+        {' \u00b7 '}
+        <Link href="/products" style={{ fontSize: 13, color: '#7ab8ff' }}>
+          Product Library
+        </Link>
+      </p>
 
-      <form onSubmit={handleGenerate} style={{ display: 'flex', gap: 10, marginBottom: 30 }}>
+      <form onSubmit={handleGenerate} style={{ marginBottom: 30 }}>
+        <div style={{ display: 'flex', gap: 10, marginBottom: 10 }}>
+          <input
+            type="text"
+            value={niche}
+            onChange={(e) => setNiche(e.target.value)}
+            placeholder="e.g. organic dog treats"
+            style={{
+              flex: 1,
+              padding: '10px 14px',
+              borderRadius: 6,
+              border: '1px solid #ccc',
+              fontSize: 14,
+            }}
+          />
+          <button
+            type="submit"
+            disabled={loading}
+            style={{
+              padding: '10px 20px',
+              borderRadius: 6,
+              border: 'none',
+              background: '#0070f3',
+              color: '#fff',
+              fontWeight: 600,
+              cursor: loading ? 'not-allowed' : 'pointer',
+            }}
+          >
+            {loading ? 'Generating...' : 'Generate'}
+          </button>
+        </div>
+
+        <label style={{ fontSize: 13, fontWeight: 600, display: 'block', marginBottom: 6, color: '#ddd' }}>
+          Target keyword for Google/Microsoft Ads (optional)
+        </label>
         <input
           type="text"
-          value={niche}
-          onChange={(e) => setNiche(e.target.value)}
-          placeholder="e.g. organic dog treats"
+          value={keyword}
+          onChange={(e) => setKeyword(e.target.value)}
+          placeholder="e.g. organic dog treats near me"
           style={{
-            flex: 1,
+            width: '100%',
+            padding: '10px 14px',
+            borderRadius: 6,
+            border: '1px solid #ccc',
+            fontSize: 14,
+            marginBottom: 10,
+          }}
+        />
+        <p style={{ fontSize: 12, color: '#ddd', marginTop: -4, marginBottom: 16 }}>
+          Google Ads and Microsoft Ads are search/keyword-targeted, so ad copy there is built around this
+          keyword (with real search volume/CPC pulled in automatically). Leave blank to use the niche as
+          the keyword. Social captions don't need this -- they're audience-targeted, not keyword-targeted.
+        </p>
+
+        <label style={{ fontSize: 13, fontWeight: 600, display: 'block', marginBottom: 6, color: '#ddd' }}>
+          Promote a product (optional)
+        </label>
+        <select
+          value={productId}
+          onChange={(e) => setProductId(e.target.value)}
+          style={{
+            width: '100%',
             padding: '10px 14px',
             borderRadius: 6,
             border: '1px solid #ccc',
             fontSize: 14,
           }}
-        />
-        <button
-          type="submit"
-          disabled={loading}
-          style={{
-            padding: '10px 20px',
-            borderRadius: 6,
-            border: 'none',
-            background: '#0070f3',
-            color: '#fff',
-            fontWeight: 600,
-            cursor: loading ? 'not-allowed' : 'pointer',
-          }}
         >
-          {loading ? 'Generating...' : 'Generate'}
-        </button>
+          <option value="">No product</option>
+          {products.map((p) => (
+            <option key={p.id} value={p.id}>
+              {p.name} ({p.platform})
+            </option>
+          ))}
+        </select>
+        {products.length === 0 && (
+          <p style={{ fontSize: 12, color: '#ddd', marginTop: 6 }}>
+            No products saved yet -- add one in the{' '}
+            <Link href="/products" style={{ color: '#7ab8ff' }}>Product Library</Link>.
+          </p>
+        )}
       </form>
 
-      {error && <p style={{ color: 'red', marginBottom: 20 }}>{error}</p>}
+      {error && <p style={{ color: '#ff8080', marginBottom: 20 }}>{error}</p>}
 
       {content && (
         <>
+          {keywordData.length > 0 && (
+            <div style={{ ...cardStyle, background: '#f0f9ff', border: '1px solid #bae6fd' }}>
+              <h2 style={{ fontSize: 14, marginBottom: 8, color: '#0369a1' }}>
+                Keyword data used for Google/Microsoft Ads
+              </h2>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                {keywordData.slice(0, 6).map((k) => (
+                  <span
+                    key={k.keyword}
+                    style={{
+                      fontSize: 12,
+                      background: '#fff',
+                      border: '1px solid #bae6fd',
+                      borderRadius: 999,
+                      padding: '4px 10px',
+                      color: '#075985',
+                    }}
+                  >
+                    {k.keyword}
+                    {k.searchVolume != null ? ` · ${k.searchVolume}/mo` : ''}
+                    {k.cpc != null ? ` · $${k.cpc} CPC` : ''}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
           <div style={cardStyle}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <h2 style={{ fontSize: 18 }}>Ad Copy</h2>
@@ -147,6 +292,7 @@ export default function ContentEngine() {
             <p style={{ marginTop: 10 }}><strong>{content.adCopy.headline}</strong></p>
             <p style={{ marginTop: 6, color: '#444' }}>{content.adCopy.primaryText}</p>
             <p style={{ marginTop: 6, color: '#0070f3', fontWeight: 600 }}>{content.adCopy.cta}</p>
+            <ProductChip />
           </div>
 
           <div style={cardStyle}>
@@ -165,6 +311,7 @@ export default function ContentEngine() {
             <p style={{ marginTop: 6, color: '#444', whiteSpace: 'pre-wrap' }}>
               {content.blogPost.content}
             </p>
+            <ProductChip />
 
             <div style={{ marginTop: 16, display: 'flex', alignItems: 'center', gap: 12 }}>
               <button
@@ -219,6 +366,7 @@ export default function ContentEngine() {
                 <p style={{ marginTop: 6, color: '#444', whiteSpace: 'pre-wrap', fontSize: 14 }}>
                   {item.caption}
                 </p>
+                {['LinkedIn', 'Facebook', 'Pinterest', 'Instagram'].includes(item.platform) && <ProductChip />}
               </div>
             ))}
           </div>

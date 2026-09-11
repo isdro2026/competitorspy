@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/router';
 
 const links = [
+  { href: '/dashboard', label: 'Dashboard' },
   { href: '/', label: 'Niche Finder' },
   { href: '/keyword-research', label: 'Keyword Research' },
   { href: '/landing-page-builder', label: 'Landing Page Builder' },
