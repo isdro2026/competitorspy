@@ -88,13 +88,14 @@ export default async function handler(req, res) {
       : '';
 
     const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+    const currentYear = new Date().getFullYear();
 
     const message = await anthropic.messages.create({
       model: 'claude-sonnet-4-5',
       max_tokens: 8000,
       messages: [{
         role: 'user',
-        content: `You are a marketing content generator for the niche: "${niche}".${productInstruction}${keywordInstruction}
+        content: `You are a marketing content generator for the niche: "${niche}". The current year is ${currentYear} -- if any title or copy references a specific year, always use ${currentYear}, never an earlier year.${productInstruction}${keywordInstruction}
 
 Generate marketing content and return ONLY a JSON object (no markdown, no explanation, no code fences) with this exact shape:
 {
