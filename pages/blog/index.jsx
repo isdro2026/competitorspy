@@ -25,7 +25,7 @@ export default function BlogIndex() {
 
   return (
     <div style={{ maxWidth: 800, margin: '0 auto', padding: '40px 20px' }}>
-      <h1 style={{ fontSize: 32, marginBottom: 8 }}>Blog</h1>
+      <h1 style={{ fontSize: 32, marginBottom: 8, color: '#f5f5f7' }}>Blog</h1>
       <p style={{ color: '#b8b8cc', marginBottom: 32 }}>
         Auto-generated content from the Content Engine.
       </p>
