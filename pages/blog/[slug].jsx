@@ -46,7 +46,7 @@ export default function BlogPost() {
             border: '1px solid #e0e0e0',
           }}
         >
-          <h1 style={{ fontSize: 32, marginBottom: 8, color: '#111' }}>{post.title}</h1>
+          <h1 style={{ fontSize: 32, marginBottom: 8, color: '#f5f5f7' }}>{post.title}</h1>
 
           {post.product_link && (
             <a
@@ -74,20 +74,20 @@ export default function BlogPost() {
                 />
               )}
               <div>
-                <div style={{ fontSize: 12, color: '#7c3aed', fontWeight: 600, textTransform: 'uppercase', marginBottom: 2 }}>
+                <div style={{ fontSize: 12, color: '#a78bfa', fontWeight: 600, textTransform: 'uppercase', marginBottom: 2 }}>
                   Featured product
                 </div>
-                <div style={{ fontSize: 15, fontWeight: 600, color: '#222' }}>{post.product_name}</div>
-                <div style={{ fontSize: 13, color: '#7c3aed', marginTop: 2 }}>Shop this product &gt;</div>
+                <div style={{ fontSize: 15, fontWeight: 600, color: '#eaeaf2' }}>{post.product_name}</div>
+                <div style={{ fontSize: 13, color: '#a78bfa', marginTop: 2 }}>Shop this product &gt;</div>
               </div>
             </a>
           )}
           {post.niche && (
-            <p style={{ fontSize: 13, color: '#888', marginBottom: 24 }}>
+            <p style={{ fontSize: 13, color: '#a8a8c9', marginBottom: 24 }}>
               Niche: {post.niche} · {new Date(post.created_at).toLocaleDateString()}
             </p>
           )}
-          <div style={{ fontSize: 16, lineHeight: 1.7, whiteSpace: 'pre-wrap', color: '#222' }}>
+          <div style={{ fontSize: 16, lineHeight: 1.7, whiteSpace: 'pre-wrap', color: '#d8d8e8' }}>
             {post.content}
           </div>
         </article>

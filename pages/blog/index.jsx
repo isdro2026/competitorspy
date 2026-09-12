@@ -26,14 +26,14 @@ export default function BlogIndex() {
   return (
     <div style={{ maxWidth: 800, margin: '0 auto', padding: '40px 20px' }}>
       <h1 style={{ fontSize: 32, marginBottom: 8 }}>Blog</h1>
-      <p style={{ color: '#666', marginBottom: 32 }}>
+      <p style={{ color: '#b8b8cc', marginBottom: 32 }}>
         Auto-generated content from the Content Engine.
       </p>
 
       {loading && <p>Loading posts...</p>}
       {error && <p style={{ color: 'red' }}>{error}</p>}
       {!loading && !error && posts.length === 0 && (
-        <p style={{ color: '#666' }}>
+        <p style={{ color: '#b8b8cc' }}>
           No posts published yet. Generate one from the Content Engine.
         </p>
       )}
@@ -49,16 +49,16 @@ export default function BlogIndex() {
               border: '1px solid #e0e0e0',
               borderRadius: 8,
               textDecoration: 'none',
-              color: 'inherit',
+              color: '#f5f5f7',
             }}
           >
             <h2 style={{ fontSize: 20, marginBottom: 6 }}>{post.title}</h2>
             {post.niche && (
-              <p style={{ fontSize: 13, color: '#888', marginBottom: 8 }}>
+              <p style={{ fontSize: 13, color: '#a8a8c9', marginBottom: 8 }}>
                 Niche: {post.niche}
               </p>
             )}
-            <p style={{ color: '#555', fontSize: 14 }}>
+            <p style={{ color: '#c9c9dc', fontSize: 14 }}>
               {post.content.slice(0, 160)}...
             </p>
           </Link>
