@@ -1,50 +1,21 @@
 import { useEffect, useState } from 'react';
-import Link from 'next/link';
 import { useRouter } from 'next/router';
+import NicheFinder from './niche-finder';
+import KeywordResearch from './keyword-research';
+import LandingPageBuilder from './landing-page-builder';
+import ContentEngine from './content-engine';
+import BlogIndex from './blog/index';
+import Schedules from './schedules';
+import Products from './products';
 
-const TOOLS = [
-  {
-    href: '/',
-    title: 'Niche Finder',
-    description: 'Discover profitable niches and see what competitors are doing.',
-    icon: '🔎',
-  },
-  {
-    href: '/keyword-research',
-    title: 'Keyword Research',
-    description: 'Look up search volume, CPC, and competition for any keyword.',
-    icon: '🔑',
-  },
-  {
-    href: '/landing-page-builder',
-    title: 'Landing Page Builder',
-    description: 'Generate a ready-to-use landing page for a niche or product.',
-    icon: '🧱',
-  },
-  {
-    href: '/content-engine',
-    title: 'Content Engine',
-    description: 'Generate ad copy, blog posts, and social captions in one click.',
-    icon: '✍️',
-  },
-  {
-    href: '/blog',
-    title: 'Blog',
-    description: 'View published blog posts. New posts auto-post to your connected LinkedIn.',
-    icon: '📰',
-  },
-  {
-    href: '/schedules',
-    title: 'Auto-Posting Schedules',
-    description: 'Set up recurring content generation and posting.',
-    icon: '🗓️',
-  },
-  {
-    href: '/products',
-    title: 'Product Library',
-    description: 'Manage products you promote across ad copy and social posts.',
-    icon: '🛍️',
-  },
+const TOOL_TABS = [
+  { key: 'niche-finder', title: 'Niche Finder', icon: '🔎', Component: NicheFinder },
+  { key: 'keyword-research', title: 'Keyword Research', icon: '🔑', Component: KeywordResearch },
+  { key: 'landing-page-builder', title: 'Landing Page Builder', icon: '🧱', Component: LandingPageBuilder },
+  { key: 'content-engine', title: 'Content Engine', icon: '✍️', Component: ContentEngine },
+  { key: 'blog', title: 'Blog', icon: '📰', Component: BlogIndex },
+  { key: 'schedules', title: 'Auto-Posting Schedules', icon: '🗓️', Component: Schedules },
+  { key: 'products', title: 'Product Library', icon: '🛍️', Component: Products },
 ];
 
 const PLATFORMS = [
@@ -69,6 +40,7 @@ export default function Dashboard() {
   const [connected, setConnected] = useState([]);
   const [loadingStatus, setLoadingStatus] = useState(true);
   const [banner, setBanner] = useState(null);
+  const [activeTab, setActiveTab] = useState('niche-finder');
 
   useEffect(() => {
     loadStatus();
@@ -101,8 +73,11 @@ export default function Dashboard() {
   const isConnected = (platform) => connected.some((c) => c.platform === platform);
   const connectedAccount = (platform) => connected.find((c) => c.platform === platform);
 
+  const activeTool = TOOL_TABS.find((t) => t.key === activeTab) || TOOL_TABS[0];
+  const ActiveComponent = activeTool.Component;
+
   return (
-    <div style={{ maxWidth: 960, margin: '0 auto', padding: '40px 20px' }}>
+    <div style={{ maxWidth: 1100, margin: '0 auto', padding: '40px 20px' }}>
       <h1 style={{ fontSize: 30, marginBottom: 8, color: '#fff' }}>Dashboard</h1>
       <p style={{ color: '#ddd', marginBottom: 30 }}>
         Everything in CompetitorSpy, in one place.
@@ -186,18 +161,41 @@ export default function Dashboard() {
       <h2 style={{ fontSize: 16, color: '#fff', marginBottom: 12 }}>Tools</h2>
       <div
         style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
-          gap: 16,
+          display: 'flex',
+          gap: 6,
+          flexWrap: 'wrap',
+          borderBottom: '1px solid #333',
+          marginBottom: 24,
+          paddingBottom: 0,
         }}
       >
-        {TOOLS.map((tool) => (
-          <Link key={tool.href} href={tool.href} style={cardStyle}>
-            <div style={{ fontSize: 24, marginBottom: 8 }}>{tool.icon}</div>
-            <div style={{ fontWeight: 600, fontSize: 15, marginBottom: 4 }}>{tool.title}</div>
-            <div style={{ fontSize: 13, color: '#666' }}>{tool.description}</div>
-          </Link>
-        ))}
+        {TOOL_TABS.map((tab) => {
+          const isActiveTab = tab.key === activeTab;
+          return (
+            <button
+              key={tab.key}
+              onClick={() => setActiveTab(tab.key)}
+              style={{
+                padding: '10px 16px',
+                borderRadius: '8px 8px 0 0',
+                border: 'none',
+                borderBottom: isActiveTab ? '2px solid #ff8c00' : '2px solid transparent',
+                background: isActiveTab ? '#fff' : 'transparent',
+                color: isActiveTab ? '#111' : '#ccc',
+                fontWeight: 600,
+                fontSize: 13,
+                cursor: 'pointer',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {tab.icon} {tab.title}
+            </button>
+          );
+        })}
+      </div>
+
+      <div>
+        <ActiveComponent key={activeTool.key} />
       </div>
     </div>
   );
