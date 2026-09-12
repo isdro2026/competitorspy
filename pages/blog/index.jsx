@@ -54,7 +54,7 @@ export default function BlogIndex() {
           >
             <h2 style={{ fontSize: 20, marginBottom: 6 }}>{post.title}</h2>
             {post.niche && (
-              <p style={{ fontSize: 13, color: '#a8a8c9', marginBottom: 8 }}>
+              <p style={{ fontSize: 13, color: '#ff8c00', marginBottom: 8 }}>
                 Niche: {post.niche}
               </p>
             )}
