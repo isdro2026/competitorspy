@@ -24,7 +24,7 @@ export default function NavBar() {
         flexWrap: 'wrap',
       }}
     >
-      <span style={{ fontWeight: 700, marginRight: 16 }}>CompetitorSpy</span>
+      <span style={{ fontWeight: 700, marginRight: 16, color: '#ff8c00', fontSize: 20 }}>CompetitorSpy</span>
       {links.map((link) => {
         const isActive = router.pathname === link.href;
         return (
@@ -34,8 +34,8 @@ export default function NavBar() {
             style={{
               textDecoration: 'none',
               color: link.label === 'Blog' ? '#ff8c00' : (isActive ? '#0070f3' : '#333'),
-              fontWeight: isActive ? 600 : 400,
-              fontSize: 14,
+              fontWeight: link.label === 'Blog' ? 700 : (isActive ? 600 : 400),
+              fontSize: link.label === 'Blog' ? 17 : 14,
             }}
           >
             {link.label}
