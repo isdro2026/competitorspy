@@ -14,6 +14,8 @@ export default function ContentEngine() {
   const [copiedKey, setCopiedKey] = useState('');
   const [publishing, setPublishing] = useState(false);
   const [publishedSlug, setPublishedSlug] = useState('');
+  const [linkedinStatus, setLinkedinStatus] = useState(null); // null | 'posting' | 'success' | 'error'
+  const [linkedinError, setLinkedinError] = useState('');
 
   useEffect(() => {
     fetch('/api/products')
@@ -66,6 +68,8 @@ export default function ContentEngine() {
     if (!content?.blogPost) return;
     setPublishing(true);
     setError('');
+    setLinkedinStatus(null);
+    setLinkedinError('');
 
     try {
       const res = await fetch('/api/blog-posts', {
@@ -83,6 +87,7 @@ export default function ContentEngine() {
       const json = await res.json();
       if (json.success) {
         setPublishedSlug(json.data.slug);
+        await autoPostToLinkedIn(json.data.slug);
       } else {
         setError(json.error || 'Failed to publish post');
       }
@@ -90,6 +95,33 @@ export default function ContentEngine() {
       setError(err.message);
     } finally {
       setPublishing(false);
+    }
+  };
+
+  // Auto-post the generated LinkedIn caption to the connected LinkedIn account
+  // right after a blog post goes live, linking back to the new post.
+  const autoPostToLinkedIn = async (slug) => {
+    const linkedinCaption = content?.socialCaptions?.find((c) => c.platform === 'LinkedIn')?.caption;
+    if (!linkedinCaption) return;
+
+    setLinkedinStatus('posting');
+    try {
+      const postUrl = `${window.location.origin}/blog/${slug}`;
+      const liRes = await fetch('/api/social/post-linkedin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ caption: `${linkedinCaption}\n\nRead more: ${postUrl}` }),
+      });
+      const liJson = await liRes.json();
+      if (liJson.success) {
+        setLinkedinStatus('success');
+      } else {
+        setLinkedinStatus('error');
+        setLinkedinError(liJson.error || 'Failed to post to LinkedIn');
+      }
+    } catch (err) {
+      setLinkedinStatus('error');
+      setLinkedinError(err.message);
     }
   };
 
@@ -316,33 +348,48 @@ export default function ContentEngine() {
             </p>
             <ProductChip />
 
-            <div style={{ marginTop: 16, display: 'flex', alignItems: 'center', gap: 12 }}>
-              <button
-                onClick={handlePublish}
-                disabled={publishing || !!publishedSlug}
-                style={{
-                  padding: '8px 16px',
-                  borderRadius: 6,
-                  border: 'none',
-                  background: publishedSlug ? '#999' : '#16a34a',
-                  color: '#fff',
-                  fontWeight: 600,
-                  cursor: publishing || publishedSlug ? 'not-allowed' : 'pointer',
-                  fontSize: 13,
-                }}
-              >
-                {publishedSlug ? 'Published' : publishing ? 'Publishing...' : 'Publish to Blog'}
-              </button>
-              {publishedSlug ? (
-                <a
-                  href={'/blog/' + publishedSlug}
-                  target="_blank"
-                  rel="noreferrer"
-                  style={{ fontSize: 13, color: '#0070f3' }}
+            <div style={{ marginTop: 16 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <button
+                  onClick={handlePublish}
+                  disabled={publishing || !!publishedSlug}
+                  style={{
+                    padding: '8px 16px',
+                    borderRadius: 6,
+                    border: 'none',
+                    background: publishedSlug ? '#999' : '#16a34a',
+                    color: '#fff',
+                    fontWeight: 600,
+                    cursor: publishing || publishedSlug ? 'not-allowed' : 'pointer',
+                    fontSize: 13,
+                  }}
                 >
-                  View live post -&gt;
-                </a>
-              ) : null}
+                  {publishedSlug ? 'Published' : publishing ? 'Publishing...' : 'Publish to Blog'}
+                </button>
+                {publishedSlug ? (
+                  <a
+                    href={'/blog/' + publishedSlug}
+                    target="_blank"
+                    rel="noreferrer"
+                    style={{ fontSize: 13, color: '#0070f3' }}
+                  >
+                    View live post -&gt;
+                  </a>
+                ) : null}
+              </div>
+              {linkedinStatus === 'posting' && (
+                <p style={{ marginTop: 8, fontSize: 13, color: '#888' }}>Posting to LinkedIn...</p>
+              )}
+              {linkedinStatus === 'success' && (
+                <p style={{ marginTop: 8, fontSize: 13, color: '#16a34a' }}>
+                  ✓ Auto-posted to your connected LinkedIn account
+                </p>
+              )}
+              {linkedinStatus === 'error' && (
+                <p style={{ marginTop: 8, fontSize: 13, color: '#dc2626' }}>
+                  Blog post published, but LinkedIn auto-post failed: {linkedinError}
+                </p>
+              )}
             </div>
           </div>
 

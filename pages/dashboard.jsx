@@ -30,7 +30,7 @@ const TOOLS = [
   {
     href: '/blog',
     title: 'Blog',
-    description: 'View and manage published blog posts.',
+    description: 'View published blog posts. New posts auto-post to your connected LinkedIn.',
     icon: '📰',
   },
   {
