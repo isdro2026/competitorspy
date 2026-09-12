@@ -33,7 +33,7 @@ export default function NavBar() {
             href={link.href}
             style={{
               textDecoration: 'none',
-              color: isActive ? '#0070f3' : '#333',
+              color: link.label === 'Blog' ? '#ff8c00' : (isActive ? '#0070f3' : '#333'),
               fontWeight: isActive ? 600 : 400,
               fontSize: 14,
             }}
