@@ -3,7 +3,7 @@ import { useRouter } from 'next/router';
 
 const links = [
   { href: '/dashboard', label: 'Dashboard' },
-  { href: '/', label: 'Competitor Scraper' },
+  { href: '/scraper', label: 'Competitor Scraper' },
 ];
 
 export default function NavBar() {
