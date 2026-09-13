@@ -12,13 +12,14 @@ export default async function handler(req, res) {
 
   try {
     const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+    const currentYear = new Date().getFullYear();
 
     const message = await anthropic.messages.create({
       model: 'claude-sonnet-4-5',
       max_tokens: 4000,
       messages: [{
         role: 'user',
-        content: `Generate a complete, self-contained HTML landing page for a product/business in the niche: "${niche}".
+        content: `Generate a complete, self-contained HTML landing page for a product/business in the niche: "${niche}". The current year is ${currentYear} -- if the page includes a copyright line or any other year reference, always use ${currentYear}, never an earlier year.
 
 Requirements:
 - Single HTML file with inline <style> CSS only, no external scripts, fonts, or images (use CSS gradients/shapes instead of images).
