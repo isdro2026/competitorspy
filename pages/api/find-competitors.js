@@ -28,7 +28,21 @@ export default async function handler(req, res) {
       throw new Error('Search failed: ' + (searchResult.error || 'unknown error'));
     }
 
-    const searchSummary = (searchResult.data || [])
+    // Firecrawl's /v1/search response shape has changed over time: older versions
+    // returned `data` as a flat array, newer ones nest results under `data.web`.
+    // Handle both so this doesn't silently break again if the API shifts.
+    const rawResults = Array.isArray(searchResult.data)
+      ? searchResult.data
+      : searchResult.data?.web || [];
+
+    if (!rawResults.length) {
+      return res.status(200).json({
+        success: false,
+        error: `No web search results found for "${niche}". Try a broader or differently worded niche.`,
+      });
+    }
+
+    const searchSummary = rawResults
       .map((r, i) => `${i + 1}. ${r.title}\nURL: ${r.url}\n${r.description || ''}`)
       .join('\n\n');
 
