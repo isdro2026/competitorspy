@@ -3,11 +3,7 @@ import { useRouter } from 'next/router';
 
 const links = [
   { href: '/dashboard', label: 'Dashboard' },
-  { href: '/', label: 'Niche Finder' },
-  { href: '/keyword-research', label: 'Keyword Research' },
-  { href: '/landing-page-builder', label: 'Landing Page Builder' },
-  { href: '/content-engine', label: 'Content Engine' },
-  { href: '/blog', label: 'Blog' },
+  { href: '/', label: 'Competitor Scraper' },
 ];
 
 export default function NavBar() {
@@ -33,9 +29,9 @@ export default function NavBar() {
             href={link.href}
             style={{
               textDecoration: 'none',
-              color: link.label === 'Blog' ? '#ff8c00' : (isActive ? '#0070f3' : '#333'),
-              fontWeight: link.label === 'Blog' ? 700 : (isActive ? 600 : 400),
-              fontSize: link.label === 'Blog' ? 17 : 14,
+              color: isActive ? '#0070f3' : '#333',
+              fontWeight: isActive ? 600 : 400,
+              fontSize: 14,
             }}
           >
             {link.label}
