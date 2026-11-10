@@ -13,8 +13,8 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Call Firecrawl API
-    const firecrawlResponse = await axios.post('https://api.firecrawl.dev/v0/scrape', {
+    // Call Firecrawl API (v2)
+    const firecrawlResponse = await axios.post('https://api.firecrawl.dev/v2/scrape', {
       url: url,
       formats: ['markdown', 'html'],
       onlyMainContent: true,
@@ -25,7 +25,11 @@ export default async function handler(req, res) {
       }
     });
 
-    const scrapedData = firecrawlResponse.data;
+    // v2 returns { success, data: { markdown, html, metadata } }
+    if (!firecrawlResponse.data?.success) {
+      throw new Error(firecrawlResponse.data?.error || 'Firecrawl scrape failed');
+    }
+    const scrapedData = firecrawlResponse.data.data || {};
 
     // Extract keywords from content
     const content = scrapedData.markdown || '';
