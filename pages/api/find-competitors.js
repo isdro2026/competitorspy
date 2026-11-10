@@ -11,7 +11,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const searchResponse = await fetch('https://api.firecrawl.dev/v1/search', {
+    const searchResponse = await fetch('https://api.firecrawl.dev/v2/search', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${process.env.FIRECRAWL_API_KEY}`,
@@ -28,9 +28,8 @@ export default async function handler(req, res) {
       throw new Error('Search failed: ' + (searchResult.error || 'unknown error'));
     }
 
-    // Firecrawl's /v1/search response shape has changed over time: older versions
-    // returned `data` as a flat array, newer ones nest results under `data.web`.
-    // Handle both so this doesn't silently break again if the API shifts.
+    // Firecrawl v2 /search nests web results under `data.web`.
+    // Older shapes returned `data` as a flat array — handle both just in case.
     const rawResults = Array.isArray(searchResult.data)
       ? searchResult.data
       : searchResult.data?.web || [];
